@@ -1,6 +1,6 @@
 import type { Boon, GameState, HeroDefId, StatField } from './types.ts';
 
-function applyClassStat(state: GameState, cls: HeroDefId | 'all', field: StatField, mult: number): void {
+export function applyClassStat(state: GameState, cls: HeroDefId | 'all', field: StatField, mult: number): void {
   if (cls === 'all') {
     state.runModifiers.all[field] *= mult;
   } else {

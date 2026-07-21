@@ -6,7 +6,8 @@ import { createInitialState, createHero, createEnemy } from './state.ts';
 import { buildWaveSpawnQueue } from './waves.ts';
 import { tickCombat } from './combat.ts';
 import { rollBoons, applyBoon } from './boons.ts';
-import { HERO_DEFS, TOTAL_WAVES, BOON_CHOICES_COUNT, waveClearBonus } from './config.ts';
+import { purchaseArmoryUpgrade, purchaseHeroUpgrade } from './upgrades.ts';
+import { HERO_DEFS, TOTAL_WAVES, BOON_CHOICES_COUNT, WARLORD_UNLOCK_WAVE, waveClearBonus } from './config.ts';
 import { isPlaceableTile, tileCenterPx, randomBorderSpawnPoint } from './grid.ts';
 
 function heroCost(state: GameState, defId: keyof typeof HERO_DEFS): number {
@@ -49,29 +50,50 @@ export async function startGame(container: HTMLElement): Promise<void> {
   });
 
   scene.onTileClick((tx, ty) => {
-    if (state.phase !== 'prep' || !state.selectedHeroDef || state.pendingBoonChoices) return;
+    if (state.phase !== 'prep' || state.pendingBoonChoices) return;
+    const { x, y } = tileCenterPx(tx, ty);
+    const existingHero = state.heroes.find((h) => h.x === x && h.y === y);
+
+    if (!state.selectedHeroDef) {
+      // No hero type picked from the shop — clicking a placed hero opens its upgrade panel.
+      state.selectedHeroUid = existingHero && existingHero.uid !== state.selectedHeroUid ? existingHero.uid : null;
+      return;
+    }
+
+    if (existingHero || !isPlaceableTile(tx, ty)) return;
+    if (state.selectedHeroDef === 'warlord' && state.wave < WARLORD_UNLOCK_WAVE) return;
     const cost = heroCost(state, state.selectedHeroDef);
     if (state.gold < cost) return;
-    if (!isPlaceableTile(tx, ty)) return;
 
-    const occupied = state.heroes.some((h) => {
-      const c = tileCenterPx(tx, ty);
-      return h.x === c.x && h.y === c.y;
-    });
-    if (occupied) return;
-
-    const { x, y } = tileCenterPx(tx, ty);
     state.heroes.push(createHero(state, state.selectedHeroDef, x, y));
     state.gold -= cost;
   });
 
   hud.onSelectHero((defId) => {
     if (state.pendingBoonChoices) return;
+    if (defId === 'warlord' && state.wave < WARLORD_UNLOCK_WAVE) return;
     state.selectedHeroDef = state.selectedHeroDef === defId ? null : defId;
+    state.selectedHeroUid = null;
+  });
+
+  hud.onUpgradeHero((stat) => {
+    const hero = state.heroes.find((h) => h.uid === state.selectedHeroUid);
+    if (!hero) return;
+    purchaseHeroUpgrade(state, hero, stat);
+  });
+
+  hud.onDeselectHero(() => {
+    state.selectedHeroUid = null;
+  });
+
+  hud.onBuyArmory((id) => {
+    if (state.pendingBoonChoices) return;
+    purchaseArmoryUpgrade(state, id);
   });
 
   hud.onStartWave(() => {
     if (state.phase !== 'prep' || state.pendingBoonChoices) return;
+    state.selectedHeroUid = null;
     state.spawnQueue = buildWaveSpawnQueue(state.wave);
     state.spawnTimer = state.spawnQueue.length > 0 ? state.spawnQueue[0].delayMs : 0;
     state.phase = 'combat';

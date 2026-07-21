@@ -1,4 +1,4 @@
-export type HeroDefId = 'militia' | 'archer' | 'knight' | 'champion';
+export type HeroDefId = 'militia' | 'archer' | 'knight' | 'champion' | 'warlord';
 export type EnemyDefId = 'grunt' | 'skirmisher' | 'brute' | 'reaver' | 'boss';
 
 export interface HeroDef {
@@ -25,6 +25,8 @@ export interface EnemyDef {
   radius: number;
 }
 
+export type HeroUpgradeStat = 'atk' | 'maxHp' | 'atkSpeed';
+
 export interface Hero {
   uid: number;
   defId: HeroDefId;
@@ -40,6 +42,7 @@ export interface Hero {
   xp: number;
   xpToNext: number;
   levelFlashRemaining: number;
+  upgrades: Record<HeroUpgradeStat, number>;
 }
 
 export interface Enemy {
@@ -98,6 +101,8 @@ export interface Boon {
   apply: (state: GameState) => void;
 }
 
+export type ArmoryUpgradeId = 'whetstones' | 'plating' | 'quartermaster' | 'warchest';
+
 export type GamePhase = 'prep' | 'combat' | 'won' | 'lost';
 
 export interface GameState {
@@ -112,9 +117,11 @@ export interface GameState {
   spawnQueue: WaveSpawnEntry[];
   spawnTimer: number;
   selectedHeroDef: HeroDefId | null;
+  selectedHeroUid: number | null;
   nextUid: number;
   runModifiers: RunModifiers;
   floatingTexts: FloatingText[];
   pendingBoonChoices: Boon[] | null;
   pickedBoons: string[];
+  armoryLevels: Record<ArmoryUpgradeId, number>;
 }

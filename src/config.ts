@@ -74,9 +74,23 @@ export const HERO_DEFS: Record<HeroDefId, HeroDef> = {
     color: 0xd6663e,
     radius: 16,
   },
+  warlord: {
+    id: 'warlord',
+    name: 'Warlord',
+    cost: 55,
+    hp: 190,
+    atk: 26,
+    range: TILE_SIZE * 1.15,
+    atkIntervalMs: 1050,
+    color: 0x6a72d6,
+    radius: 19,
+  },
 };
 
-export const HERO_ORDER: HeroDefId[] = ['militia', 'archer', 'knight', 'champion'];
+export const HERO_ORDER: HeroDefId[] = ['militia', 'archer', 'knight', 'champion', 'warlord'];
+
+/** Warlord is a late-game elite tier — visible but unpurchasable until this wave. */
+export const WARLORD_UNLOCK_WAVE = 5;
 
 const ENEMY_BASE: Record<EnemyDefId, EnemyDef> = {
   grunt: {

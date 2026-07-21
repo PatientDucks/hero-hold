@@ -64,6 +64,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
 }
 
 .hud-top {
@@ -146,6 +148,14 @@ body {
   cursor: not-allowed;
 }
 
+.hero-card.locked {
+  opacity: 0.55;
+}
+
+.hero-card.locked .hero-cost {
+  color: var(--muted);
+}
+
 .hero-name {
   font-weight: 600;
 }
@@ -208,6 +218,10 @@ body {
   gap: 6px;
   align-items: center;
   font-size: 0.8rem;
+}
+
+.hud-boons[hidden] {
+  display: none;
 }
 
 .hud-boons .label {
@@ -288,4 +302,147 @@ body {
 .boon-card .boon-desc {
   font-size: 0.85rem;
   color: var(--muted);
+}
+
+.hud-section-label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.hud-armory {
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+
+.armory-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.armory-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'name cost' 'effect cost';
+  column-gap: 8px;
+  row-gap: 1px;
+  background: #14110e;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.armory-row:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+
+.armory-row:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.armory-name {
+  grid-area: name;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.armory-level {
+  color: var(--gold);
+  font-weight: 400;
+  font-size: 0.75rem;
+}
+
+.armory-effect {
+  grid-area: effect;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.armory-cost {
+  grid-area: cost;
+  align-self: center;
+  color: var(--gold);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.hud-upgrade-panel {
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hud-upgrade-panel[hidden] {
+  display: none;
+}
+
+.upgrade-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+}
+
+.icon-btn:hover {
+  color: var(--text);
+}
+
+.upgrade-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.upgrade-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: #14110e;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 4px;
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.upgrade-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.upgrade-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.upgrade-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.upgrade-cost {
+  font-size: 0.72rem;
+  color: var(--gold);
 }

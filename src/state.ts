@@ -14,6 +14,7 @@ function defaultRunModifiers(): RunModifiers {
       archer: defaultStatMultipliers(),
       knight: defaultStatMultipliers(),
       champion: defaultStatMultipliers(),
+      warlord: defaultStatMultipliers(),
     },
     goldGainMult: 1,
     xpGainMult: 1,
@@ -35,11 +36,13 @@ export function createInitialState(): GameState {
     spawnQueue: [],
     spawnTimer: 0,
     selectedHeroDef: null,
+    selectedHeroUid: null,
     nextUid: 1,
     runModifiers: defaultRunModifiers(),
     floatingTexts: [],
     pendingBoonChoices: rollBoons(BOON_CHOICES_COUNT),
     pickedBoons: [],
+    armoryLevels: { whetstones: 0, plating: 0, quartermaster: 0, warchest: 0 },
   };
 }
 
@@ -66,6 +69,7 @@ export function createHero(state: GameState, defId: HeroDefId, x: number, y: num
     xp: 0,
     xpToNext: 20,
     levelFlashRemaining: 0,
+    upgrades: { atk: 0, maxHp: 0, atkSpeed: 0 },
   };
 }
 

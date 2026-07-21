@@ -191,6 +191,9 @@ function renderDynamic(g: Graphics, state: GameState, hoverTile: { tx: number; t
       const ringR = def.radius * (1.15 + progress * 1.1);
       g.circle(hero.x, hero.y, ringR).stroke({ width: 3, color: 0xf2d67a, alpha: 1 - progress });
     }
+    if (hero.uid === state.selectedHeroUid) {
+      g.circle(hero.x, hero.y, def.radius * 1.35).stroke({ width: 2, color: 0x6bb6bf, alpha: 0.9 });
+    }
     drawHeroIcon(g, hero.x, hero.y, hero.defId, def.color, def.radius);
     g.circle(hero.x + def.radius * 0.65, hero.y + def.radius * 0.65, 8)
       .fill({ color: 0xf2d67a })
@@ -264,6 +267,34 @@ function drawHeroIcon(g: Graphics, cx: number, cy: number, defId: HeroDefId, col
       g.moveTo(cx - r * 0.95, cy + r * 0.95)
         .lineTo(cx + r * 0.95, cy - r * 0.95)
         .stroke({ width: 3, color: 0xf0e6d8, alpha: 0.85 });
+      break;
+    }
+    case 'warlord': {
+      g.poly([
+        cx,
+        cy - r * 0.45,
+        cx - r * 0.6,
+        cy + r * 0.15,
+        cx - r * 0.45,
+        cy + r * 0.95,
+        cx + r * 0.45,
+        cy + r * 0.95,
+        cx + r * 0.6,
+        cy + r * 0.15,
+      ])
+        .fill({ color })
+        .stroke(OUTLINE);
+      g.circle(cx, headY, headR * 1.15).fill({ color }).stroke(OUTLINE);
+      g.moveTo(cx - r * 0.25, headY - headR * 1.1)
+        .lineTo(cx, headY - headR * 1.7)
+        .lineTo(cx + r * 0.25, headY - headR * 1.1)
+        .stroke(ACCENT);
+      g.moveTo(cx - r * 0.9, cy + r * 0.9)
+        .lineTo(cx + r * 0.65, cy - r * 0.65)
+        .stroke({ width: 3, color: 0xf0e6d8, alpha: 0.85 });
+      g.rect(cx + r * 0.5, cy - r * 0.95, r * 0.42, r * 0.42)
+        .fill({ color: 0xf0e6d8, alpha: 0.85 })
+        .stroke(OUTLINE);
       break;
     }
   }
