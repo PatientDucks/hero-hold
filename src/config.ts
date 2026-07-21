@@ -24,6 +24,11 @@ export const XP_PER_KILL = 8;
 export const LEVEL_STAT_MULT = 1.15;
 export const LEVEL_XP_MULT = 1.4;
 
+export const BOON_CHOICES_COUNT = 3;
+export const FLOAT_TEXT_RISE_PX = 42;
+export const FLOAT_TEXT_TTL_MS = 900;
+export const LEVEL_FLASH_MS = 650;
+
 export const HERO_DEFS: Record<HeroDefId, HeroDef> = {
   militia: {
     id: 'militia',

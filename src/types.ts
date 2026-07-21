@@ -39,6 +39,7 @@ export interface Hero {
   level: number;
   xp: number;
   xpToNext: number;
+  levelFlashRemaining: number;
 }
 
 export interface Enemy {
@@ -62,6 +63,41 @@ export interface WaveSpawnEntry {
   delayMs: number;
 }
 
+export type StatField = 'atk' | 'maxHp' | 'atkSpeed' | 'range';
+
+export interface StatMultipliers {
+  atk: number;
+  maxHp: number;
+  atkSpeed: number;
+  range: number;
+}
+
+export interface RunModifiers {
+  all: StatMultipliers;
+  perClass: Record<HeroDefId, StatMultipliers>;
+  goldGainMult: number;
+  xpGainMult: number;
+  heroCostMult: number;
+  statueAtkMult: number;
+}
+
+export interface FloatingText {
+  id: number;
+  x: number;
+  y: number;
+  text: string;
+  color: number;
+  ttlRemaining: number;
+  ttlTotal: number;
+}
+
+export interface Boon {
+  id: string;
+  name: string;
+  description: string;
+  apply: (state: GameState) => void;
+}
+
 export type GamePhase = 'prep' | 'combat' | 'won' | 'lost';
 
 export interface GameState {
@@ -77,4 +113,8 @@ export interface GameState {
   spawnTimer: number;
   selectedHeroDef: HeroDefId | null;
   nextUid: number;
+  runModifiers: RunModifiers;
+  floatingTexts: FloatingText[];
+  pendingBoonChoices: Boon[] | null;
+  pickedBoons: string[];
 }

@@ -1,6 +1,15 @@
-import { Application, Graphics, Container } from 'pixi.js';
+import { Application, Graphics, Container, Text } from 'pixi.js';
 import type { GameState, HeroDefId } from './types.ts';
-import { GRID_SIZE, TILE_SIZE, BOARD_PX, CENTER_PX, HERO_DEFS, STATUE_MAX_HP } from './config.ts';
+import {
+  GRID_SIZE,
+  TILE_SIZE,
+  BOARD_PX,
+  CENTER_PX,
+  HERO_DEFS,
+  STATUE_MAX_HP,
+  LEVEL_FLASH_MS,
+  FLOAT_TEXT_RISE_PX,
+} from './config.ts';
 import { isBorderTile, isPlaceableTile, pixelToTile, tileCenterPx } from './grid.ts';
 
 export interface SceneHandle {
@@ -23,10 +32,14 @@ export async function createScene(container: HTMLElement): Promise<SceneHandle> 
 
   const staticLayer = new Graphics();
   const dynamicLayer = new Graphics();
-  app.stage.addChild(staticLayer);
-  app.stage.addChild(dynamicLayer);
+  const badgeLayer = new Container();
+  const floatLayer = new Container();
+  app.stage.addChild(staticLayer, dynamicLayer, badgeLayer, floatLayer);
 
   drawStaticGrid(staticLayer);
+
+  const heroBadges = new Map<number, Text>();
+  const floatTexts = new Map<number, Text>();
 
   let clickHandler: ((tx: number, ty: number) => void) | null = null;
   let hoverHandler: ((tx: number | null, ty: number | null) => void) | null = null;
@@ -45,6 +58,66 @@ export async function createScene(container: HTMLElement): Promise<SceneHandle> 
   });
   app.stage.on('pointerleave', () => hoverHandler?.(null, null));
 
+  function syncHeroBadges(state: GameState): void {
+    const seen = new Set<number>();
+    for (const hero of state.heroes) {
+      seen.add(hero.uid);
+      const def = HERO_DEFS[hero.defId];
+      let badge = heroBadges.get(hero.uid);
+      if (!badge) {
+        badge = new Text({
+          text: '',
+          style: { fontFamily: 'system-ui, sans-serif', fontSize: 11, fontWeight: 'bold', fill: 0x1a1512 },
+        });
+        badge.anchor.set(0.5);
+        badgeLayer.addChild(badge);
+        heroBadges.set(hero.uid, badge);
+      }
+      badge.text = String(hero.level);
+      badge.position.set(hero.x + def.radius * 0.65, hero.y + def.radius * 0.65);
+    }
+    for (const [uid, badge] of heroBadges) {
+      if (!seen.has(uid)) {
+        badgeLayer.removeChild(badge);
+        badge.destroy();
+        heroBadges.delete(uid);
+      }
+    }
+  }
+
+  function syncFloatingTexts(state: GameState): void {
+    const seen = new Set<number>();
+    for (const ft of state.floatingTexts) {
+      seen.add(ft.id);
+      let text = floatTexts.get(ft.id);
+      if (!text) {
+        text = new Text({
+          text: ft.text,
+          style: { fontFamily: 'system-ui, sans-serif', fontSize: 13, fontWeight: 'bold', fill: ft.color },
+        });
+        text.anchor.set(0.5);
+        floatLayer.addChild(text);
+        floatTexts.set(ft.id, text);
+      }
+      const progress = 1 - ft.ttlRemaining / ft.ttlTotal;
+      text.position.set(ft.x, ft.y - progress * FLOAT_TEXT_RISE_PX);
+      text.alpha = 1 - progress;
+    }
+    for (const [id, text] of floatTexts) {
+      if (!seen.has(id)) {
+        floatLayer.removeChild(text);
+        text.destroy();
+        floatTexts.delete(id);
+      }
+    }
+  }
+
+  function render(state: GameState, hoverTile: { tx: number; ty: number } | null): void {
+    renderDynamic(dynamicLayer, state, hoverTile);
+    syncHeroBadges(state);
+    syncFloatingTexts(state);
+  }
+
   return {
     app,
     onTileClick: (handler) => {
@@ -53,7 +126,7 @@ export async function createScene(container: HTMLElement): Promise<SceneHandle> 
     onHover: (handler) => {
       hoverHandler = handler;
     },
-    render: (state, hoverTile) => renderDynamic(dynamicLayer, state, hoverTile),
+    render,
     destroy: () => {
       app.destroy(true, { children: true });
     },
@@ -89,9 +162,9 @@ function healthBar(g: Graphics, cx: number, cy: number, radius: number, hp: numb
 function renderDynamic(g: Graphics, state: GameState, hoverTile: { tx: number; ty: number } | null): void {
   g.clear();
 
-  if (hoverTile && state.phase === 'prep' && state.selectedHeroDef) {
+  if (hoverTile && state.phase === 'prep' && state.selectedHeroDef && !state.pendingBoonChoices) {
     const { tx, ty } = hoverTile;
-    const cost = HERO_DEFS[state.selectedHeroDef].cost;
+    const cost = Math.round(HERO_DEFS[state.selectedHeroDef].cost * state.runModifiers.heroCostMult);
     const occupied = state.heroes.some((h) => {
       const { tx: htx, ty: hty } = pixelToTile(h.x, h.y);
       return htx === tx && hty === ty;
@@ -113,7 +186,15 @@ function renderDynamic(g: Graphics, state: GameState, hoverTile: { tx: number; t
 
   for (const hero of state.heroes) {
     const def = HERO_DEFS[hero.defId];
+    if (hero.levelFlashRemaining > 0) {
+      const progress = 1 - hero.levelFlashRemaining / LEVEL_FLASH_MS;
+      const ringR = def.radius * (1.15 + progress * 1.1);
+      g.circle(hero.x, hero.y, ringR).stroke({ width: 3, color: 0xf2d67a, alpha: 1 - progress });
+    }
     drawHeroIcon(g, hero.x, hero.y, hero.defId, def.color, def.radius);
+    g.circle(hero.x + def.radius * 0.65, hero.y + def.radius * 0.65, 8)
+      .fill({ color: 0xf2d67a })
+      .stroke({ width: 1, color: 0x1a1512, alpha: 0.7 });
     healthBar(g, hero.x, hero.y, def.radius, hero.hp, hero.maxHp, 0x6fd66f);
   }
 

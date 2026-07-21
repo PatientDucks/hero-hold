@@ -8,6 +8,8 @@ import {
   LEVEL_XP_MULT,
   STATUE_ATK,
   STATUE_ATK_INTERVAL_MS,
+  FLOAT_TEXT_TTL_MS,
+  LEVEL_FLASH_MS,
 } from './config.ts';
 
 function dist(ax: number, ay: number, bx: number, by: number): number {
@@ -42,7 +44,19 @@ function nearestAliveEnemy(x: number, y: number, enemies: Enemy[], maxRange: num
   return best;
 }
 
-function grantXp(hero: Hero, amount: number): void {
+function spawnFloatingText(state: GameState, x: number, y: number, text: string, color: number): void {
+  state.floatingTexts.push({
+    id: state.nextUid++,
+    x,
+    y,
+    text,
+    color,
+    ttlRemaining: FLOAT_TEXT_TTL_MS,
+    ttlTotal: FLOAT_TEXT_TTL_MS,
+  });
+}
+
+function grantXp(state: GameState, hero: Hero, amount: number): void {
   hero.xp += amount;
   while (hero.xp >= hero.xpToNext) {
     hero.xp -= hero.xpToNext;
@@ -51,6 +65,8 @@ function grantXp(hero: Hero, amount: number): void {
     hero.atk = Math.round(hero.atk * LEVEL_STAT_MULT);
     hero.hp = hero.maxHp;
     hero.xpToNext = Math.round(hero.xpToNext * LEVEL_XP_MULT);
+    hero.levelFlashRemaining = LEVEL_FLASH_MS;
+    spawnFloatingText(state, hero.x, hero.y - 18, 'LEVEL UP!', 0xf2d67a);
   }
 }
 
@@ -118,9 +134,13 @@ export function tickCombat(state: GameState, deltaMs: number): CombatEvents {
     hero.atkCooldown = hero.atkIntervalMs;
 
     if (target.hp <= 0) {
-      events.goldEarned += target.gold;
+      const goldAward = Math.round(target.gold * state.runModifiers.goldGainMult);
+      const xpAward = Math.round(XP_PER_KILL * state.runModifiers.xpGainMult);
+      events.goldEarned += goldAward;
       events.enemyKills += 1;
-      grantXp(hero, XP_PER_KILL);
+      spawnFloatingText(state, target.x, target.y - 10, `+${goldAward}g`, 0xf2d67a);
+      spawnFloatingText(state, target.x, target.y + 6, `+${xpAward}xp`, 0x8fd6e6);
+      grantXp(state, hero, xpAward);
     }
   }
 
@@ -129,10 +149,21 @@ export function tickCombat(state: GameState, deltaMs: number): CombatEvents {
     const target = nearestAliveEnemy(CENTER_PX, CENTER_PX, state.enemies, STATUE_ENGAGE_RADIUS);
     if (target && target.atStatue) {
       // Statue kills grant no gold/XP — it's a last line of defense, not a source of income.
-      target.hp -= STATUE_ATK;
+      target.hp -= STATUE_ATK * state.runModifiers.statueAtkMult;
       state.statueAtkCooldown = STATUE_ATK_INTERVAL_MS;
     }
   }
+
+  for (const hero of state.heroes) {
+    if (hero.levelFlashRemaining > 0) {
+      hero.levelFlashRemaining = Math.max(0, hero.levelFlashRemaining - deltaMs);
+    }
+  }
+
+  for (const ft of state.floatingTexts) {
+    ft.ttlRemaining -= deltaMs;
+  }
+  state.floatingTexts = state.floatingTexts.filter((ft) => ft.ttlRemaining > 0);
 
   state.heroes = state.heroes.filter((h) => h.hp > 0);
   state.enemies = state.enemies.filter((e) => e.hp > 0);

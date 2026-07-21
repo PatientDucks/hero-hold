@@ -201,3 +201,91 @@ body {
   color: #d66f6f;
   font-weight: 600;
 }
+
+.hud-boons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  font-size: 0.8rem;
+}
+
+.hud-boons .label {
+  color: var(--muted);
+  margin-right: 2px;
+}
+
+.boon-chip {
+  background: #14110e;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 0.72rem;
+  color: var(--gold);
+}
+
+.boon-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 8, 6, 0.78);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.boon-overlay[hidden] {
+  display: none;
+}
+
+.boon-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 28px;
+  max-width: 760px;
+  text-align: center;
+}
+
+.boon-panel h2 {
+  margin: 0 0 18px;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+}
+
+.boon-cards {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.boon-card {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #14110e;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.boon-card:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.boon-card .boon-name {
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.boon-card .boon-desc {
+  font-size: 0.85rem;
+  color: var(--muted);
+}

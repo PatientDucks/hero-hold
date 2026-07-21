@@ -1,11 +1,17 @@
 import type { GameState } from './types.ts';
 import { createScene } from './scene.ts';
 import { createHud } from './hud.ts';
+import { createBoonModal } from './boonModal.ts';
 import { createInitialState, createHero, createEnemy } from './state.ts';
 import { buildWaveSpawnQueue } from './waves.ts';
 import { tickCombat } from './combat.ts';
-import { HERO_DEFS, TOTAL_WAVES, waveClearBonus } from './config.ts';
+import { rollBoons, applyBoon } from './boons.ts';
+import { HERO_DEFS, TOTAL_WAVES, BOON_CHOICES_COUNT, waveClearBonus } from './config.ts';
 import { isPlaceableTile, tileCenterPx, randomBorderSpawnPoint } from './grid.ts';
+
+function heroCost(state: GameState, defId: keyof typeof HERO_DEFS): number {
+  return Math.round(HERO_DEFS[defId].cost * state.runModifiers.heroCostMult);
+}
 
 export async function startGame(container: HTMLElement): Promise<void> {
   const boardEl = document.createElement('div');
@@ -17,12 +23,25 @@ export async function startGame(container: HTMLElement): Promise<void> {
 
   const scene = await createScene(boardEl);
   const hud = createHud(hudEl);
+  const boonModal = createBoonModal();
 
   let state: GameState = createInitialState();
   let hoverTile: { tx: number; ty: number } | null = null;
 
   function resetGame(): void {
     state = createInitialState();
+    if (state.pendingBoonChoices) boonModal.show(state.pendingBoonChoices);
+  }
+
+  boonModal.onPick((boonId) => {
+    const boon = state.pendingBoonChoices?.find((b) => b.id === boonId);
+    if (!boon) return;
+    applyBoon(state, boon);
+    boonModal.hide();
+  });
+
+  if (state.pendingBoonChoices) {
+    boonModal.show(state.pendingBoonChoices);
   }
 
   scene.onHover((tx, ty) => {
@@ -30,9 +49,9 @@ export async function startGame(container: HTMLElement): Promise<void> {
   });
 
   scene.onTileClick((tx, ty) => {
-    if (state.phase !== 'prep' || !state.selectedHeroDef) return;
-    const def = HERO_DEFS[state.selectedHeroDef];
-    if (state.gold < def.cost) return;
+    if (state.phase !== 'prep' || !state.selectedHeroDef || state.pendingBoonChoices) return;
+    const cost = heroCost(state, state.selectedHeroDef);
+    if (state.gold < cost) return;
     if (!isPlaceableTile(tx, ty)) return;
 
     const occupied = state.heroes.some((h) => {
@@ -43,15 +62,16 @@ export async function startGame(container: HTMLElement): Promise<void> {
 
     const { x, y } = tileCenterPx(tx, ty);
     state.heroes.push(createHero(state, state.selectedHeroDef, x, y));
-    state.gold -= def.cost;
+    state.gold -= cost;
   });
 
   hud.onSelectHero((defId) => {
+    if (state.pendingBoonChoices) return;
     state.selectedHeroDef = state.selectedHeroDef === defId ? null : defId;
   });
 
   hud.onStartWave(() => {
-    if (state.phase !== 'prep') return;
+    if (state.phase !== 'prep' || state.pendingBoonChoices) return;
     state.spawnQueue = buildWaveSpawnQueue(state.wave);
     state.spawnTimer = state.spawnQueue.length > 0 ? state.spawnQueue[0].delayMs : 0;
     state.phase = 'combat';
@@ -89,6 +109,8 @@ export async function startGame(container: HTMLElement): Promise<void> {
         } else {
           state.wave += 1;
           state.phase = 'prep';
+          state.pendingBoonChoices = rollBoons(BOON_CHOICES_COUNT);
+          boonModal.show(state.pendingBoonChoices);
         }
       }
     }

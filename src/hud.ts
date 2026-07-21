@@ -21,6 +21,7 @@ export function createHud(container: HTMLElement): HudHandle {
         <div class="bar"><div class="bar-fill" data-field="statue-bar"></div></div>
       </div>
     </div>
+    <div class="hud-boons" data-field="boons" hidden></div>
     <div class="hud-shop" data-field="shop"></div>
     <div class="hud-actions">
       <button type="button" class="btn primary" data-field="start-wave">Start Wave</button>
@@ -30,6 +31,7 @@ export function createHud(container: HTMLElement): HudHandle {
   `;
   container.appendChild(root);
 
+  const boonsEl = root.querySelector<HTMLDivElement>('[data-field="boons"]')!;
   const shopEl = root.querySelector<HTMLDivElement>('[data-field="shop"]')!;
   const waveEl = root.querySelector<HTMLSpanElement>('[data-field="wave"]')!;
   const goldEl = root.querySelector<HTMLSpanElement>('[data-field="gold"]')!;
@@ -43,6 +45,7 @@ export function createHud(container: HTMLElement): HudHandle {
   let restartHandler: (() => void) | null = null;
 
   const shopButtons = new Map<HeroDefId, HTMLButtonElement>();
+  const shopCostEls = new Map<HeroDefId, HTMLSpanElement>();
   for (const defId of HERO_ORDER) {
     const def = HERO_DEFS[defId];
     const btn = document.createElement('button');
@@ -50,12 +53,13 @@ export function createHud(container: HTMLElement): HudHandle {
     btn.className = 'hero-card';
     btn.innerHTML = `
       <span class="hero-name">${def.name}</span>
-      <span class="hero-cost">${def.cost}g</span>
+      <span class="hero-cost" data-cost>${def.cost}g</span>
       <span class="hero-stats">HP ${def.hp} · ATK ${def.atk}</span>
     `;
     btn.addEventListener('click', () => selectHandler?.(defId));
     shopEl.appendChild(btn);
     shopButtons.set(defId, btn);
+    shopCostEls.set(defId, btn.querySelector<HTMLSpanElement>('[data-cost]')!);
   }
 
   startBtn.addEventListener('click', () => startHandler?.());
@@ -81,9 +85,20 @@ export function createHud(container: HTMLElement): HudHandle {
 
       for (const [defId, btn] of shopButtons) {
         const def = HERO_DEFS[defId];
-        const affordable = state.gold >= def.cost;
-        btn.disabled = state.phase !== 'prep' || !affordable;
+        const cost = Math.round(def.cost * state.runModifiers.heroCostMult);
+        shopCostEls.get(defId)!.textContent = `${cost}g`;
+        const affordable = state.gold >= cost;
+        btn.disabled = state.phase !== 'prep' || !affordable || !!state.pendingBoonChoices;
         btn.classList.toggle('selected', state.selectedHeroDef === defId);
+      }
+
+      if (state.pickedBoons.length > 0) {
+        boonsEl.hidden = false;
+        boonsEl.innerHTML =
+          `<span class="label">Boons</span>` +
+          state.pickedBoons.map((name) => `<span class="boon-chip">${name}</span>`).join('');
+      } else {
+        boonsEl.hidden = true;
       }
 
       startBtn.hidden = state.phase !== 'prep';
