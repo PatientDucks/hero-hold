@@ -1,6 +1,7 @@
 import type { GameState } from './types.ts';
 import { createScene } from './scene.ts';
 import { createHud } from './hud.ts';
+import { createArmoryPanel } from './armoryPanel.ts';
 import { createBoonModal } from './boonModal.ts';
 import { createInitialState, createHero, createEnemy } from './state.ts';
 import { buildWaveSpawnQueue } from './waves.ts';
@@ -15,15 +16,19 @@ function heroCost(state: GameState, defId: keyof typeof HERO_DEFS): number {
 }
 
 export async function startGame(container: HTMLElement): Promise<void> {
+  const armoryEl = document.createElement('div');
+  armoryEl.className = 'armory-panel-container';
   const boardEl = document.createElement('div');
   boardEl.className = 'board';
   const hudEl = document.createElement('div');
   hudEl.className = 'hud-container';
+  container.appendChild(armoryEl);
   container.appendChild(boardEl);
   container.appendChild(hudEl);
 
   const scene = await createScene(boardEl);
   const hud = createHud(hudEl);
+  const armoryPanel = createArmoryPanel(armoryEl);
   const boonModal = createBoonModal();
 
   let state: GameState = createInitialState();
@@ -86,7 +91,7 @@ export async function startGame(container: HTMLElement): Promise<void> {
     state.selectedHeroUid = null;
   });
 
-  hud.onBuyArmory((id) => {
+  armoryPanel.onBuyArmory((id) => {
     if (state.pendingBoonChoices) return;
     purchaseArmoryUpgrade(state, id);
   });
@@ -139,5 +144,6 @@ export async function startGame(container: HTMLElement): Promise<void> {
 
     scene.render(state, hoverTile);
     hud.update(state);
+    armoryPanel.update(state);
   });
 }

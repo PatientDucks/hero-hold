@@ -304,23 +304,70 @@ body {
   color: var(--muted);
 }
 
-.hud-section-label {
+.armory-panel-container {
+  align-self: flex-start;
+}
+
+.armory-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 200px;
+  overflow: hidden;
+  transition: width 0.18s ease;
+}
+
+.armory-panel.collapsed {
+  width: 40px;
+}
+
+.armory-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.armory-panel.collapsed .armory-panel-header {
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: none;
+  padding: 12px 8px;
+}
+
+.armory-panel-title {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--muted);
-  margin-bottom: 6px;
+  white-space: nowrap;
 }
 
-.hud-armory {
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
+.armory-panel.collapsed .armory-panel-title {
+  writing-mode: vertical-rl;
 }
 
-.armory-list {
+.armory-toggle-icon {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.armory-panel-body {
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+.armory-panel.collapsed .armory-panel-body {
+  display: none;
 }
 
 .armory-row {
