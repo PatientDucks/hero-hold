@@ -199,8 +199,10 @@ function renderDynamic(g: Graphics, state: GameState, hoverTile: { tx: number; t
   }
 
   for (const enemy of state.enemies) {
-    g.circle(enemy.x, enemy.y, 10).fill({ color: enemyColor(enemy.defId) });
-    healthBar(g, enemy.x, enemy.y, enemyRadius(enemy.defId), enemy.hp, enemy.maxHp, 0xd66f6f);
+    const radius = enemyRadius(enemy.defId);
+    g.circle(enemy.x, enemy.y, radius).fill({ color: enemyColor(enemy.defId) });
+    g.circle(enemy.x, enemy.y, radius).stroke({ width: 1.5, color: 0x1a1512, alpha: 0.55 });
+    healthBar(g, enemy.x, enemy.y, radius, enemy.hp, enemy.maxHp, 0xd66f6f);
   }
 }
 
@@ -268,14 +270,32 @@ function drawHeroIcon(g: Graphics, cx: number, cy: number, defId: HeroDefId, col
 }
 
 function enemyColor(defId: string): number {
-  if (defId === 'boss') return 0x4a1f4f;
-  if (defId === 'brute') return 0x7a3f5c;
-  return 0xb05a5a;
+  switch (defId) {
+    case 'boss':
+      return 0x4a1f4f;
+    case 'brute':
+      return 0x7a3f5c;
+    case 'reaver':
+      return 0xc9432e;
+    case 'skirmisher':
+      return 0xe0a23e;
+    default:
+      return 0xb05a5a; // grunt
+  }
 }
 
 function enemyRadius(defId: string): number {
-  if (defId === 'boss') return 24;
-  if (defId === 'brute') return 13;
-  return 10;
+  switch (defId) {
+    case 'boss':
+      return 30;
+    case 'brute':
+      return 15;
+    case 'reaver':
+      return 12;
+    case 'skirmisher':
+      return 7;
+    default:
+      return 10; // grunt
+  }
 }
 

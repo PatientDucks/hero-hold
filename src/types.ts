@@ -1,5 +1,5 @@
 export type HeroDefId = 'militia' | 'archer' | 'knight' | 'champion';
-export type EnemyDefId = 'grunt' | 'brute' | 'boss';
+export type EnemyDefId = 'grunt' | 'skirmisher' | 'brute' | 'reaver' | 'boss';
 
 export interface HeroDef {
   id: HeroDefId;
