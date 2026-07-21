@@ -1,5 +1,5 @@
 import { Application, Graphics, Container } from 'pixi.js';
-import type { GameState } from './types.ts';
+import type { GameState, HeroDefId } from './types.ts';
 import { GRID_SIZE, TILE_SIZE, BOARD_PX, CENTER_PX, HERO_DEFS, STATUE_MAX_HP } from './config.ts';
 import { isBorderTile, isPlaceableTile, pixelToTile, tileCenterPx } from './grid.ts';
 
@@ -113,14 +113,76 @@ function renderDynamic(g: Graphics, state: GameState, hoverTile: { tx: number; t
 
   for (const hero of state.heroes) {
     const def = HERO_DEFS[hero.defId];
-    g.circle(hero.x, hero.y, def.radius).fill({ color: def.color });
-    g.circle(hero.x, hero.y, def.radius).stroke({ width: 2, color: 0xffffff, alpha: 0.5 });
+    drawHeroIcon(g, hero.x, hero.y, hero.defId, def.color, def.radius);
     healthBar(g, hero.x, hero.y, def.radius, hero.hp, hero.maxHp, 0x6fd66f);
   }
 
   for (const enemy of state.enemies) {
     g.circle(enemy.x, enemy.y, 10).fill({ color: enemyColor(enemy.defId) });
     healthBar(g, enemy.x, enemy.y, enemyRadius(enemy.defId), enemy.hp, enemy.maxHp, 0xd66f6f);
+  }
+}
+
+const OUTLINE = { width: 1.5, color: 0x1a1512, alpha: 0.55 };
+const ACCENT = { width: 2, color: 0xf0e6d8, alpha: 0.85 };
+
+/** Draws a small silhouette distinguishing each hero type, in place of a plain token. */
+function drawHeroIcon(g: Graphics, cx: number, cy: number, defId: HeroDefId, color: number, r: number): void {
+  const headR = r * 0.36;
+  const headY = cy - r * 0.7;
+
+  switch (defId) {
+    case 'militia': {
+      g.roundRect(cx - r * 0.4, cy - r * 0.05, r * 0.8, r * 1.05, r * 0.2).fill({ color }).stroke(OUTLINE);
+      g.circle(cx, headY, headR).fill({ color }).stroke(OUTLINE);
+      g.moveTo(cx + r * 0.3, cy - r * 0.05)
+        .lineTo(cx + r * 0.85, cy - r * 0.55)
+        .stroke(ACCENT);
+      break;
+    }
+    case 'archer': {
+      g.poly([cx, cy - r * 0.35, cx - r * 0.4, cy + r * 0.75, cx + r * 0.4, cy + r * 0.75])
+        .fill({ color })
+        .stroke(OUTLINE);
+      g.circle(cx, headY, headR).fill({ color }).stroke(OUTLINE);
+      {
+        const bowX = cx + r * 0.35;
+        const bowY = cy + r * 0.05;
+        const bowR = r * 0.6;
+        const a0 = -Math.PI * 0.4;
+        g.moveTo(bowX + bowR * Math.cos(a0), bowY + bowR * Math.sin(a0))
+          .arc(bowX, bowY, bowR, a0, Math.PI * 0.4)
+          .stroke(ACCENT);
+      }
+      break;
+    }
+    case 'knight': {
+      g.rect(cx - r * 0.45, cy - r * 0.25, r * 0.9, r * 1.0).fill({ color }).stroke(OUTLINE);
+      g.circle(cx, headY, headR).fill({ color }).stroke(OUTLINE);
+      g.roundRect(cx - r * 0.95, cy - r * 0.1, r * 0.35, r * 0.6, r * 0.08).fill({ color: 0xf0e6d8, alpha: 0.85 }).stroke(OUTLINE);
+      break;
+    }
+    case 'champion': {
+      g.poly([
+        cx,
+        cy - r * 0.4,
+        cx - r * 0.55,
+        cy + r * 0.1,
+        cx - r * 0.4,
+        cy + r * 0.9,
+        cx + r * 0.4,
+        cy + r * 0.9,
+        cx + r * 0.55,
+        cy + r * 0.1,
+      ])
+        .fill({ color })
+        .stroke(OUTLINE);
+      g.circle(cx, headY, headR * 1.1).fill({ color }).stroke(OUTLINE);
+      g.moveTo(cx - r * 0.95, cy + r * 0.95)
+        .lineTo(cx + r * 0.95, cy - r * 0.95)
+        .stroke({ width: 3, color: 0xf0e6d8, alpha: 0.85 });
+      break;
+    }
   }
 }
 
