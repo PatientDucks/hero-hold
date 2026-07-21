@@ -70,6 +70,7 @@ export interface GameState {
   gold: number;
   statueHp: number;
   statueMaxHp: number;
+  statueAtkCooldown: number;
   heroes: Hero[];
   enemies: Enemy[];
   spawnQueue: WaveSpawnEntry[];

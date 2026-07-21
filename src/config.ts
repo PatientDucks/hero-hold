@@ -13,6 +13,11 @@ export const STATUE_MAX_HP = 300;
 export const STATUE_ENGAGE_RADIUS = TILE_SIZE * 0.75;
 export const HERO_ENGAGE_RADIUS = TILE_SIZE * 0.8;
 
+// The statue can defend itself a little, but is deliberately too weak to clear
+// a wave alone — roughly enough to take down half of wave 1's grunts unassisted.
+export const STATUE_ATK = 4;
+export const STATUE_ATK_INTERVAL_MS = 1200;
+
 export const STARTING_GOLD = 30;
 
 export const XP_PER_KILL = 8;

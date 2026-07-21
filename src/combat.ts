@@ -6,6 +6,8 @@ import {
   XP_PER_KILL,
   LEVEL_STAT_MULT,
   LEVEL_XP_MULT,
+  STATUE_ATK,
+  STATUE_ATK_INTERVAL_MS,
 } from './config.ts';
 
 function dist(ax: number, ay: number, bx: number, by: number): number {
@@ -119,6 +121,16 @@ export function tickCombat(state: GameState, deltaMs: number): CombatEvents {
       events.goldEarned += target.gold;
       events.enemyKills += 1;
       grantXp(hero, XP_PER_KILL);
+    }
+  }
+
+  state.statueAtkCooldown -= deltaMs;
+  if (state.statueAtkCooldown <= 0) {
+    const target = nearestAliveEnemy(CENTER_PX, CENTER_PX, state.enemies, STATUE_ENGAGE_RADIUS);
+    if (target && target.atStatue) {
+      // Statue kills grant no gold/XP — it's a last line of defense, not a source of income.
+      target.hp -= STATUE_ATK;
+      state.statueAtkCooldown = STATUE_ATK_INTERVAL_MS;
     }
   }
 

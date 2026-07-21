@@ -8,6 +8,7 @@ export function createInitialState(): GameState {
     gold: STARTING_GOLD,
     statueHp: STATUE_MAX_HP,
     statueMaxHp: STATUE_MAX_HP,
+    statueAtkCooldown: 0,
     heroes: [],
     enemies: [],
     spawnQueue: [],
