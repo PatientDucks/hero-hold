@@ -309,6 +309,105 @@ body {
   font-weight: 600;
 }
 
+.victory-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 40%, rgba(60, 46, 20, 0.9), rgba(10, 8, 6, 0.92));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.victory-overlay[hidden] {
+  display: none;
+}
+
+.victory-panel {
+  background: var(--panel);
+  border: 1px solid var(--gold);
+  border-radius: 12px;
+  padding: 40px 48px;
+  width: min(420px, 92vw);
+  text-align: center;
+  box-shadow: 0 0 40px rgba(242, 214, 122, 0.25);
+  animation: victory-pop 0.4s ease-out;
+}
+
+.victory-title {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  animation: victory-glow 2.2s ease-in-out infinite;
+}
+
+.victory-sub {
+  margin: 6px 0 22px;
+  color: var(--text);
+}
+
+.victory-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.victory-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  background: #14110e;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+}
+
+.victory-stat .label {
+  color: var(--muted);
+}
+
+.victory-stat .value {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.victory-play-again {
+  width: 100%;
+  font-size: 1.05rem;
+}
+
+@keyframes victory-pop {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes victory-glow {
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(242, 214, 122, 0.5);
+  }
+  50% {
+    text-shadow: 0 0 26px rgba(242, 214, 122, 0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .victory-panel,
+  .victory-title {
+    animation: none;
+  }
+}
+
 .boon-panel h2 {
   margin: 0 0 18px;
   color: var(--gold);
@@ -618,5 +717,17 @@ body {
 
   .boon-panel {
     padding: 16px;
+  }
+
+  .victory-panel {
+    padding: 28px 24px;
+  }
+
+  .victory-title {
+    font-size: 2rem;
+  }
+
+  .victory-stats {
+    grid-template-columns: 1fr;
   }
 }

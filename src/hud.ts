@@ -132,7 +132,12 @@ export function createHud(container: HTMLElement): HudHandle {
         } else {
           const cost = Math.round(def.cost * state.runModifiers.heroCostMult);
           costEl.textContent = `${cost}g`;
-          btn.disabled = !inPrep || state.gold < cost;
+          // An already-selected card stays clickable even once unaffordable, so the
+          // player can always tap it again to deselect — otherwise a selection that
+          // outlives your gold gets stuck, silently blocking taps on placed heroes
+          // (which only open the upgrade panel when nothing is selected).
+          const isSelected = state.selectedHeroDef === defId;
+          btn.disabled = !inPrep || (state.gold < cost && !isSelected);
         }
         btn.classList.toggle('selected', state.selectedHeroDef === defId);
         btn.classList.toggle('locked', locked);

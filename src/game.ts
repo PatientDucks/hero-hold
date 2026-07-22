@@ -4,6 +4,7 @@ import { createHud } from './hud.ts';
 import { createArmoryPanel } from './armoryPanel.ts';
 import { createBoonModal } from './boonModal.ts';
 import { createWaveClearedModal } from './waveClearedModal.ts';
+import { createVictorySplash } from './victorySplash.ts';
 import { createInitialState, createHero, createEnemy } from './state.ts';
 import { buildWaveSpawnQueue } from './waves.ts';
 import { tickCombat } from './combat.ts';
@@ -36,6 +37,7 @@ export async function startGame(container: HTMLElement): Promise<void> {
   const armoryPanel = createArmoryPanel(armoryEl);
   const boonModal = createBoonModal();
   const waveClearedModal = createWaveClearedModal();
+  const victorySplash = createVictorySplash();
 
   let state: GameState = createInitialState();
   let hoverTile: { tx: number; ty: number } | null = null;
@@ -43,8 +45,13 @@ export async function startGame(container: HTMLElement): Promise<void> {
   function resetGame(): void {
     state = createInitialState();
     waveClearedModal.hide();
+    victorySplash.hide();
     if (state.pendingBoonChoices) boonModal.show(state.pendingBoonChoices);
   }
+
+  victorySplash.onPlayAgain(() => {
+    resetGame();
+  });
 
   boonModal.onPick((boonId) => {
     const boon = state.pendingBoonChoices?.find((b) => b.id === boonId);
@@ -152,6 +159,7 @@ export async function startGame(container: HTMLElement): Promise<void> {
         state.gold += bonus;
         if (clearedWave >= TOTAL_WAVES) {
           state.phase = 'won';
+          victorySplash.show(state);
         } else {
           // Boons are the reward for the round just finished, not a head start on the
           // next one — announce the clear first; the wave counter and boon offer only
