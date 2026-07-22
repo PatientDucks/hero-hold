@@ -3,6 +3,7 @@ import { createScene } from './scene.ts';
 import { createHud } from './hud.ts';
 import { createArmoryPanel } from './armoryPanel.ts';
 import { createBoonModal } from './boonModal.ts';
+import { createWaveClearedModal } from './waveClearedModal.ts';
 import { createInitialState, createHero, createEnemy } from './state.ts';
 import { buildWaveSpawnQueue } from './waves.ts';
 import { tickCombat } from './combat.ts';
@@ -13,6 +14,10 @@ import { isPlaceableTile, tileCenterPx, randomBorderSpawnPoint } from './grid.ts
 
 function heroCost(state: GameState, defId: keyof typeof HERO_DEFS): number {
   return Math.round(HERO_DEFS[defId].cost * state.runModifiers.heroCostMult);
+}
+
+function blocked(state: GameState): boolean {
+  return Boolean(state.pendingBoonChoices) || state.pendingWaveClearedWave !== null;
 }
 
 export async function startGame(container: HTMLElement): Promise<void> {
@@ -30,12 +35,14 @@ export async function startGame(container: HTMLElement): Promise<void> {
   const hud = createHud(hudEl);
   const armoryPanel = createArmoryPanel(armoryEl);
   const boonModal = createBoonModal();
+  const waveClearedModal = createWaveClearedModal();
 
   let state: GameState = createInitialState();
   let hoverTile: { tx: number; ty: number } | null = null;
 
   function resetGame(): void {
     state = createInitialState();
+    waveClearedModal.hide();
     if (state.pendingBoonChoices) boonModal.show(state.pendingBoonChoices);
   }
 
@@ -44,6 +51,16 @@ export async function startGame(container: HTMLElement): Promise<void> {
     if (!boon) return;
     applyBoon(state, boon);
     boonModal.hide();
+  });
+
+  waveClearedModal.onContinue(() => {
+    const clearedWave = state.pendingWaveClearedWave;
+    if (clearedWave === null) return;
+    state.pendingWaveClearedWave = null;
+    state.wave = clearedWave + 1;
+    waveClearedModal.hide();
+    state.pendingBoonChoices = rollBoons(BOON_CHOICES_COUNT);
+    boonModal.show(state.pendingBoonChoices);
   });
 
   if (state.pendingBoonChoices) {
@@ -55,7 +72,7 @@ export async function startGame(container: HTMLElement): Promise<void> {
   });
 
   scene.onTileClick((tx, ty) => {
-    if (state.phase !== 'prep' || state.pendingBoonChoices) return;
+    if (state.phase !== 'prep' || blocked(state)) return;
     const { x, y } = tileCenterPx(tx, ty);
     const existingHero = state.heroes.find((h) => h.x === x && h.y === y);
 
@@ -75,7 +92,7 @@ export async function startGame(container: HTMLElement): Promise<void> {
   });
 
   hud.onSelectHero((defId) => {
-    if (state.pendingBoonChoices) return;
+    if (blocked(state)) return;
     if (defId === 'warlord' && state.wave < WARLORD_UNLOCK_WAVE) return;
     state.selectedHeroDef = state.selectedHeroDef === defId ? null : defId;
     state.selectedHeroUid = null;
@@ -92,12 +109,12 @@ export async function startGame(container: HTMLElement): Promise<void> {
   });
 
   armoryPanel.onBuyArmory((id) => {
-    if (state.pendingBoonChoices) return;
+    if (blocked(state)) return;
     purchaseArmoryUpgrade(state, id);
   });
 
   hud.onStartWave(() => {
-    if (state.phase !== 'prep' || state.pendingBoonChoices) return;
+    if (state.phase !== 'prep' || blocked(state)) return;
     state.selectedHeroUid = null;
     state.spawnQueue = buildWaveSpawnQueue(state.wave);
     state.spawnTimer = state.spawnQueue.length > 0 ? state.spawnQueue[0].delayMs : 0;
@@ -130,14 +147,18 @@ export async function startGame(container: HTMLElement): Promise<void> {
         state.statueHp = 0;
         state.phase = 'lost';
       } else if (state.spawnQueue.length === 0 && state.enemies.length === 0) {
-        state.gold += waveClearBonus(state.wave);
-        if (state.wave >= TOTAL_WAVES) {
+        const clearedWave = state.wave;
+        const bonus = waveClearBonus(clearedWave);
+        state.gold += bonus;
+        if (clearedWave >= TOTAL_WAVES) {
           state.phase = 'won';
         } else {
-          state.wave += 1;
+          // Boons are the reward for the round just finished, not a head start on the
+          // next one — announce the clear first; the wave counter and boon offer only
+          // advance once the player continues past it.
           state.phase = 'prep';
-          state.pendingBoonChoices = rollBoons(BOON_CHOICES_COUNT);
-          boonModal.show(state.pendingBoonChoices);
+          state.pendingWaveClearedWave = clearedWave;
+          waveClearedModal.show(clearedWave, bonus);
         }
       }
     }

@@ -56,7 +56,7 @@ export function createArmoryPanel(container: HTMLElement): ArmoryPanelHandle {
       buyHandler = handler;
     },
     update: (state) => {
-      const inPrep = state.phase === 'prep' && !state.pendingBoonChoices;
+      const inPrep = state.phase === 'prep' && !state.pendingBoonChoices && state.pendingWaveClearedWave === null;
       for (const [id, row] of rows) {
         const cost = armoryUpgradeCost(state, id);
         row.level.textContent = `Lv${state.armoryLevels[id]}`;

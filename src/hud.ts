@@ -120,7 +120,7 @@ export function createHud(container: HTMLElement): HudHandle {
       statueBarEl.style.width = `${statuePct}%`;
       statueBarEl.style.background = statuePct > 50 ? '#6fd66f' : statuePct > 20 ? '#d6b23e' : '#d66f6f';
 
-      const inPrep = state.phase === 'prep' && !state.pendingBoonChoices;
+      const inPrep = state.phase === 'prep' && !state.pendingBoonChoices && state.pendingWaveClearedWave === null;
 
       for (const [defId, btn] of shopButtons) {
         const def = HERO_DEFS[defId];

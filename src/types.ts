@@ -124,4 +124,5 @@ export interface GameState {
   pendingBoonChoices: Boon[] | null;
   pickedBoons: string[];
   armoryLevels: Record<ArmoryUpgradeId, number>;
+  pendingWaveClearedWave: number | null;
 }

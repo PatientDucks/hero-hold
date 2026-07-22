@@ -162,7 +162,13 @@ function healthBar(g: Graphics, cx: number, cy: number, radius: number, hp: numb
 function renderDynamic(g: Graphics, state: GameState, hoverTile: { tx: number; ty: number } | null): void {
   g.clear();
 
-  if (hoverTile && state.phase === 'prep' && state.selectedHeroDef && !state.pendingBoonChoices) {
+  if (
+    hoverTile &&
+    state.phase === 'prep' &&
+    state.selectedHeroDef &&
+    !state.pendingBoonChoices &&
+    state.pendingWaveClearedWave === null
+  ) {
     const { tx, ty } = hoverTile;
     const cost = Math.round(HERO_DEFS[state.selectedHeroDef].cost * state.runModifiers.heroCostMult);
     const occupied = state.heroes.some((h) => {

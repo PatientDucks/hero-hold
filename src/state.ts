@@ -43,6 +43,7 @@ export function createInitialState(): GameState {
     pendingBoonChoices: rollBoons(BOON_CHOICES_COUNT),
     pickedBoons: [],
     armoryLevels: { whetstones: 0, plating: 0, quartermaster: 0, warchest: 0 },
+    pendingWaveClearedWave: null,
   };
 }
 
