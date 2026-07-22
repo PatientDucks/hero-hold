@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "simulate": "node --experimental-strip-types scripts/balance-sim.ts"
   },
   "devDependencies": {
     "typescript": "~6.0.2",

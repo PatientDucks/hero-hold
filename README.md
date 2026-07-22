@@ -52,6 +52,24 @@ All game balance (hero stats, enemy scaling, gold costs, wave
 composition) lives in [`src/config.ts`](src/config.ts) and
 [`src/waves.ts`](src/waves.ts).
 
+## Balance testing
+
+```
+npm run simulate               # 200 trials per strategy (default)
+npm run simulate -- --trials=600
+```
+
+`scripts/balance-sim.ts` runs full 10-wave games headlessly (no
+Pixi/DOM — it drives `state.ts`/`combat.ts`/`waves.ts`/`boons.ts`/
+`upgrades.ts` directly) against a few scripted strategies: mindless
+single-unit spam, mindless random placement/boons/armory, and a
+deliberate "competent" baseline (chokepoint ring around the statue,
+reinvests leftover gold into hero HP upgrades and Armory). It prints a
+win-rate and per-wave death histogram per strategy. Use it after any
+balance-relevant change — the design goal is that the mindless
+strategies should rarely win while the competent one wins comfortably
+but not trivially.
+
 ## Design notes
 
 - **Grid**: 9x9 tiles. The outer ring is the enemy spawn border; the

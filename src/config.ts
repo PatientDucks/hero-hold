@@ -140,8 +140,8 @@ const ENEMY_BASE: Record<EnemyDefId, EnemyDef> = {
   boss: {
     id: 'boss',
     name: 'The Ravager',
-    hp: 1100,
-    atk: 30,
+    hp: 1400,
+    atk: 38,
     speed: 22,
     atkIntervalMs: 850,
     gold: 200,
